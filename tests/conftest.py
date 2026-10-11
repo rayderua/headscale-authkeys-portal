@@ -2,7 +2,7 @@ import itertools
 import json
 from datetime import datetime, timedelta, timezone
 
-import httpx
+import httpx2 as httpx
 import pytest
 
 from app.config import Settings
