@@ -49,5 +49,8 @@ branch containing an empty `index.yaml`, enable Pages from that branch, give
 workflows read/write permission, and make the GHCR package public (or add an
 imagePullSecret).
 
-    helm repo add headscale-authkeys-portal https://<owner>.github.io/headscale-authkeys-portal/
+    helm repo add headscale-authkeys-portal https://rayderua.github.io/headscale-authkeys-portal/
     helm install portal headscale-authkeys-portal/headscale-authkeys-portal -f values.yaml
+
+Chart documentation: [chart/headscale-authkeys-portal/README.md](chart/headscale-authkeys-portal/README.md).
+Repository: https://github.com/rayderua/headscale-authkeys-portal
