@@ -1,0 +1,88 @@
+image:
+  repository: ghcr.io/rayderua/headscale-portal
+  tag: ""            # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+# The portal keeps per-owner locks and rate limits in memory,
+# so it must run as a single replica.
+replicas: 1
+
+config:
+  # Public URL of this portal (OIDC redirect URI = <publicUrl>/auth/callback).
+  publicUrl: ""
+  # Public URL of headscale, shown to users and put into the commands.
+  headscalePublicUrl: ""
+  # Private URL of headscale used for API calls only (e.g. the Service address).
+  headscaleApiUrl: ""
+  # Show a link that creates the headscale user via headscale's OIDC login,
+  # for people without a tailscale client (e.g. phone only).
+  signupLink: true
+  oidc:
+    issuer: ""
+    clientId: ""
+    scopes: [openid, profile, email, groups]
+    groupsClaim: groups
+    usernameClaim: preferred_username
+    # Issuer used by headscale for its OIDC users. Empty = same as issuer.
+    headscaleIssuer: ""
+  admin:
+    group: ""        # members of this group are admins
+    users: []        # usernames (preferred_username) that are admins
+  limits:
+    maxSets: 3
+    maxDevices: 5
+    defaultDevices: 1
+    ttlMinutes: 15
+    createsPerMinute: 10
+  tailscale:
+    # Extra arguments for the generated "tailscale up" command, one per entry.
+    # --login-server and --authkey are added by the portal.
+    upArgs: []        # e.g. ["--accept-dns=true", "--accept-routes"]
+  session:
+    maxAgeHours: 8
+    cookieSecure: true
+
+# Secret environment variables. The chart creates a Secret from this map and
+# passes it to the container with envFrom. The three PORTAL_* keys are required
+# (headscale API key, OIDC client secret, session secret of 32+ characters);
+# any other key is added to the environment as well.
+secretsEnv:
+  PORTAL_HEADSCALE_API_KEY: ""
+  PORTAL_OIDC_CLIENT_SECRET: ""
+  PORTAL_SESSION_SECRET: ""
+
+# Use a Secret you manage yourself instead. When set, the chart creates no Secret
+# and secretsEnv is ignored; the Secret must contain the same three PORTAL_* keys.
+existingSecret: ""
+
+extraEnv: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []            # [{secretName: x, hosts: [..]}]
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: {drop: [ALL]}
+  seccompProfile: {type: RuntimeDefault}
+
+resources:
+  requests: {cpu: 50m, memory: 96Mi}
+  limits: {memory: 256Mi}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+extraManifests: []

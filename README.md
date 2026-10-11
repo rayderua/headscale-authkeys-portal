@@ -1,0 +1,70 @@
+# headscale-portal
+
+Self-service portal for headscale users: issue pre-auth keys, create the headscale
+account without a client, and see and delete their own nodes. Users sign in with the
+same OIDC provider headscale uses; the portal talks to headscale only through
+its REST API.
+
+## Behaviour
+- Users are matched to headscale users with `provider == oidc`, the same issuer,
+  and the same username (+ email when both sides have one). `sub` is ignored.
+  The portal never creates headscale users.
+- A key set = N single-use keys (default 1, max 5), TTL 15 min, no tags, not
+  reusable. Max 3 active sets per owner. Keys are shown once.
+- Admins (`admin.group` or `admin.users`) see all sets, can revoke any and can
+  create sets for any OIDC user.
+- Headscale pre-auth keys have no label field, so the portal is stateless: a set
+  is identified by (owner, shared expiration). Only keys that look like portal
+  keys are shown or counted; manually created keys are ignored.
+- Nodes: users see their own nodes (name, IPs, online/last seen) and can delete them
+  after a confirmation page. Admins see and can delete the nodes of all users.
+  Tagged nodes and nodes without a user are never shown or deleted. Ownership is
+  re-checked server-side by node id right before deleting; foreign nodes answer 404.
+- Single replica only (locks and rate limits are in-process).
+
+## Config
+YAML file (`PORTAL_CONFIG`, see `config_example.yaml` and the chart `config:`) plus secrets from the
+environment: `PORTAL_HEADSCALE_API_KEY`, `PORTAL_OIDC_CLIENT_SECRET`,
+`PORTAL_SESSION_SECRET`. Create the headscale API key by hand
+(`headscale apikeys create`) and put it into a Secret before deploying.
+
+authentik: the portal needs its own OAuth2 provider/application, redirect URI
+`<publicUrl>/auth/callback`, and the `groups` scope mapping if `admin.group` is used.
+To use the same issuer as headscale, reuse headscale's provider or set
+`oidc.headscaleIssuer`.
+
+## Dev
+    pip install -r requirements-dev.txt && pytest
+
+## UI
+Bootstrap 5.3.8 is vendored in `app/static/vendor/bootstrap/` (MIT, see LICENSE there),
+because the CSP forbids CDNs. Dark mode follows the OS setting.
+
+## CI/CD
+- `.github/workflows/ci.yml`: tests, chart lint and a test image build on every
+  push and pull request. Nothing is published.
+- `.github/workflows/release.yml`: runs **only on git tags** `vX.Y.Z[-suffix]`.
+  It runs the tests, pushes a multi-arch image to
+  `ghcr.io/<owner>/headscale-portal`, publishes the chart to the Helm
+  repo on GitHub Pages (`gh-pages` branch) and creates a GitHub Release with the
+  chart package attached.
+
+| Tag | Image tags | Chart | GitHub Release |
+|---|---|---|---|
+| `v1.2.3` | `1.2.3`, `1.2`, `latest` | `1.2.3` | release |
+| `v1.2.3-rc.1` | `1.2.3-rc.1` | `1.2.3-rc.1` (needs `--devel`) | pre-release |
+
+Chart `version` and `appVersion` are taken from the tag, so `Chart.yaml` needs no
+edit for a release:
+
+    git tag v0.1.0 && git push origin v0.1.0
+
+One-time setup: create an orphan `gh-pages` branch containing an empty
+`index.yaml`, enable Pages from that branch, give workflows read/write
+permission, and make the GHCR package public (or add an imagePullSecret).
+
+    helm repo add headscale-portal https://rayderua.github.io/headscale-portal/
+    helm install portal headscale-portal/headscale-portal -f values.yaml
+
+Chart documentation: [chart/headscale-portal/README.md](chart/headscale-portal/README.md).
+Repository: https://github.com/rayderua/headscale-portal

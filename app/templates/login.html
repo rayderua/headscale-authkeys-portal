@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card shadow-sm mx-auto mt-5 text-center" style="max-width:420px">
+  <div class="card-body p-4">
+    <svg class="text-primary mb-2" width="40" height="40" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l-6.5 11h13z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/><circle cx="12" cy="6" r="2.4" fill="currentColor"/><circle cx="5.5" cy="17" r="2.4" fill="currentColor"/><circle cx="18.5" cy="17" r="2.4" fill="currentColor"/></svg>
+    <h1 class="h4">{{ t('title') }}</h1>
+    <p class="text-body-secondary">{{ t('sign_in_hint') }}</p>
+    <a class="btn btn-primary" href="/login">{{ t('sign_in') }}</a>
+  </div>
+</div>
+{% endblock %}

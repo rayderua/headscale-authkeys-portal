@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card shadow-sm mx-auto mt-5" style="max-width:520px">
+  <div class="card-body">
+    <p class="text-danger fw-medium">{{ message }}</p>
+    <a class="btn btn-outline-secondary" href="/">{{ t('back') }}</a>
+  </div>
+</div>
+{% endblock %}

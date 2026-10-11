@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block body %}
+{% if me_problem %}
+<div class="card shadow-sm mb-4"><div class="card-body">
+  {% if me_problem == 'user_not_found' %}{% include "_signup.html" %}
+  {% else %}<p class="text-danger fw-medium mb-0">{{ t('err_' ~ me_problem) }}</p>{% endif %}
+</div></div>
+{% endif %}
+<section class="card shadow-sm mb-4">
+  <div class="card-header bg-body py-3"><h1 class="h5 mb-0">{{ t('nodes_all') if user.is_admin else t('nodes_mine') }}</h1></div>
+  {% if not nodes %}
+  <p class="text-center text-body-secondary py-4 mb-0">{{ t('no_nodes') }}</p>
+  {% else %}
+  <div class="table-responsive"><table class="table table-hover align-middle mb-0">
+    <thead><tr>
+      <th class="ps-3">{{ t('col_name') }}</th>
+      {% if user.is_admin %}<th>{{ t('owner') }}</th>{% endif %}
+      <th class="d-none d-sm-table-cell">{{ t('col_ips') }}</th><th>{{ t('col_status') }}</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for n in nodes %}
+    <tr>
+      <td class="ps-3 fw-semibold">{{ n.name }}
+        <div class="d-sm-none fw-normal mt-1">{% for ip in n.ips %}<span class="badge bg-body-secondary text-body border font-monospace fw-normal me-1">{{ ip }}</span>{% endfor %}</div>
+      </td>
+      {% if user.is_admin %}<td>{{ n.owner_name }}</td>{% endif %}
+      <td class="d-none d-sm-table-cell">{% for ip in n.ips %}<span class="badge bg-body-secondary text-body border font-monospace fw-normal me-1">{{ ip }}</span>{% endfor %}</td>
+      <td>
+        {% if n.online %}<span class="status on">{{ t('online') }}</span>
+        {% else %}<span class="status">{{ t('offline') }}</span>
+          <span class="seen">{{ t('last_seen') }}
+            {% if n.last_seen %}<time class="ago" datetime="{{ n.last_seen.isoformat() }}">{{ n.last_seen.strftime('%Y-%m-%d %H:%M UTC') }}</time>
+            {% else %}{{ t('never') }}{% endif %}
+          </span>
+        {% endif %}
+      </td>
+      <td class="text-end pe-3"><a class="btn btn-sm btn-outline-danger" href="/nodes/{{ n.id }}/delete">{{ t('delete') }}</a></td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+</section>
+{% endblock %}

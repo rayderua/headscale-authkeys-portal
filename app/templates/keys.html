@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block body %}
+{% if me_problem %}
+<div class="card shadow-sm mb-4"><div class="card-body">
+  {% if me_problem == 'user_not_found' %}{% include "_signup.html" %}
+  {% else %}<p class="text-danger fw-medium mb-0">{{ t('err_' ~ me_problem) }}</p>{% endif %}
+</div></div>
+{% endif %}
+
+<section class="card shadow-sm mb-4">
+  <div class="card-header bg-body d-flex flex-wrap justify-content-between align-items-center gap-2 py-3">
+    <h1 class="h5 mb-0">{{ t('my_keys') if not user.is_admin else t('all_keys') }}</h1>
+    {% if me %}
+    <div class="d-flex align-items-center gap-2 text-body-secondary small">
+      <span class="segs" aria-hidden="true">{% for i in range(limits.max_sets) %}<i {% if i < used %}class="on"{% endif %}></i>{% endfor %}</span>
+      <span>{{ t('quota', used=used, max=limits.max_sets) }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  {% if me or user.is_admin %}
+  <form method="post" action="/keys" class="card-body bg-body-tertiary border-bottom d-flex flex-wrap align-items-end gap-3">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% if user.is_admin %}
+    <div>
+      <label class="form-label small text-body-secondary mb-1" for="owner">{{ t('for_whom') }}</label>
+      <select class="form-select" id="owner" name="owner">
+        {% for o in owners %}
+        <option value="{{ o.id }}" {% if me and o.id|int == me.id|int %}selected{% endif %}>{{ o.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    {% endif %}
+    <div>
+      <label class="form-label small text-body-secondary mb-1" for="devices">{{ t('devices') }}</label>
+      <select class="form-select" id="devices" name="devices">
+        {% for n in range(1, limits.max_devices + 1) %}
+        <option value="{{ n }}" {% if n == limits.default_devices %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn btn-primary" type="submit" {% if full and not user.is_admin %}disabled{% endif %}>{{ t('create') }}</button>
+  </form>
+  <p class="small text-body-secondary px-3 py-2 mb-0">{{ t('devices_hint') }}{% if full and not user.is_admin %} {{ t('limit_note') }}{% endif %}</p>
+  {% endif %}
+
+  {% if not sets %}
+  <p class="text-center text-body-secondary py-4 mb-0 border-top">{{ t('no_sets') }}</p>
+  {% else %}
+  <div class="table-responsive border-top"><table class="table table-hover align-middle mb-0">
+    <thead><tr>
+      {% if user.is_admin %}<th class="ps-3">{{ t('owner') }}</th>{% endif %}
+      <th class="{% if not user.is_admin %}ps-3{% endif %}">{{ t('key') }}</th><th>{{ t('expires_in') }}</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for x in sets %}
+    <tr>
+      {% if user.is_admin %}<td class="ps-3 fw-semibold">{{ x.owner_name }}</td>{% endif %}
+      <td class="{% if not user.is_admin %}ps-3{% endif %}">{{ t('unused', n=x.unused, total=x.total) }}</td>
+      <td><span class="countdown font-monospace" data-expires="{{ x.expires_at.isoformat() }}"></span></td>
+      <td class="text-end pe-3">
+        <form method="post" action="/keys/revoke" class="m-0">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="set_id" value="{{ x.id }}">
+          <button class="btn btn-sm btn-outline-danger" type="submit">{{ t('revoke') }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table></div>
+  {% endif %}
+</section>
+{% endblock %}

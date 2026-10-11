@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block body %}
+<div class="card border-danger-subtle shadow-sm mx-auto mt-4" style="max-width:520px">
+  <div class="card-body">
+    <h1 class="h5">{{ t('delete_title') }}</h1>
+    <p class="text-body-secondary">{{ t('delete_question', name=node.name) }}</p>
+    <p>{% for ip in node.ips %}<span class="badge bg-body-secondary text-body border font-monospace fw-normal me-1">{{ ip }}</span>{% endfor %}
+      {% if user.is_admin %}<span class="small text-body-secondary">{{ t('owner') }}: {{ node.owner_name }}</span>{% endif %}</p>
+    <div class="alert alert-warning">{{ t('delete_warning') }}</div>
+    <form method="post" action="/nodes/{{ node.id }}/delete" class="d-flex gap-2 m-0">
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn-danger" type="submit">{{ t('delete_confirm') }}</button>
+      <a class="btn btn-outline-secondary" href="/nodes">{{ t('cancel') }}</a>
+    </form>
+  </div>
+</div>
+{% endblock %}

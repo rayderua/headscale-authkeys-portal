@@ -1,0 +1,8 @@
+<p class="text-danger fw-medium">{{ t('err_user_not_found') }}</p>
+{% if signup_url %}
+<p>{{ t('signup_text') }}</p>
+<p><a class="btn btn-primary" href="{{ signup_url }}" target="_blank" rel="noopener">{{ t('signup_button') }}</a></p>
+<p class="small text-body-secondary">{{ t('signup_note') }}</p>
+<p><a class="btn btn-outline-secondary" href="/keys">{{ t('signup_check') }}</a></p>
+{% endif %}
+<p class="small text-body-secondary mb-0">{{ t('signup_alt') }}</p>

@@ -1,0 +1,6 @@
+apiVersion: v2
+name: headscale-portal
+description: Web portal for headscale (self-service pre-auth keys, account creation, nodes) with authentik OIDC
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

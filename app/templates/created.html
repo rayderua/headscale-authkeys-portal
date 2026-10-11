@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="card shadow-sm mb-4">
+  <div class="card-header bg-body d-flex justify-content-between align-items-center gap-2 py-3">
+    <h1 class="h5 mb-0">{{ t('created_keys') }}{% if for_other %}: {{ owner_user.name }}{% endif %}</h1>
+    <a class="btn btn-sm btn-outline-secondary" href="/keys">{{ t('back') }}</a>
+  </div>
+  <div class="card-body">
+    <div class="alert alert-warning">{{ t('show_once') }} <span class="countdown font-monospace" data-expires="{{ expires.isoformat() }}"></span></div>
+
+    <div class="mb-3">
+      <div class="form-label small text-body-secondary mb-1">{{ t('headscale_url') }}</div>
+      <div class="input-group">
+        <span class="form-control font-monospace text-break">{{ settings.headscale_public_url }}</span>
+        <button class="btn btn-outline-secondary" type="button" data-copy="{{ settings.headscale_public_url }}">{{ t('copy') }}</button>
+      </div>
+    </div>
+
+    {% for k, cmd in keys %}
+    <div class="border-top pt-3 mt-3">
+      {% if keys|length > 1 %}<h2 class="h6 text-body-secondary">#{{ loop.index }}</h2>{% endif %}
+      <div class="mb-3">
+        <div class="form-label small text-body-secondary mb-1">{{ t('key') }}</div>
+        <div class="input-group">
+          <span class="form-control font-monospace text-break">{{ k }}</span>
+          <button class="btn btn-outline-secondary" type="button" data-copy="{{ k }}">{{ t('copy') }}</button>
+        </div>
+      </div>
+      <div>
+        <div class="form-label small text-body-secondary mb-1">{{ t('command') }}</div>
+        <div class="term">
+          <pre><code>{{ cmd }}</code></pre>
+          <button class="btn btn-sm btn-outline-light" type="button" data-copy="{{ cmd }}">{{ t('copy') }}</button>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}

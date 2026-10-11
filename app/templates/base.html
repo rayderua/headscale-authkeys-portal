@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ t('title') }}</title>
+<script src="/static/theme.js"></script>
+<link rel="stylesheet" href="/static/vendor/bootstrap/bootstrap.min.css">
+<link rel="stylesheet" href="/static/app.css">
+<script src="/static/app.js" defer></script>
+</head>
+<body class="bg-body-tertiary">
+<nav class="navbar bg-body border-bottom">
+  <div class="container flex-wrap gap-2">
+    <a class="navbar-brand d-flex align-items-center gap-2 fw-semibold me-3" href="/">
+      <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6l-6.5 11h13z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="6" r="2.6" fill="currentColor"/><circle cx="5.5" cy="17" r="2.6" fill="currentColor"/><circle cx="18.5" cy="17" r="2.6" fill="currentColor"/></svg>
+      <span>{{ t('title') }}</span>
+    </a>
+    {% if user %}
+    <ul class="nav nav-underline me-auto" aria-label="Main">
+      <li class="nav-item"><a class="nav-link {% if page == 'keys' %}active{% endif %}" {% if page == 'keys' %}aria-current="page"{% endif %} href="/keys">{{ t('nav_keys') }}</a></li>
+      <li class="nav-item"><a class="nav-link {% if page == 'nodes' %}active{% endif %}" {% if page == 'nodes' %}aria-current="page"{% endif %} href="/nodes">{{ t('nav_nodes') }}</a></li>
+    </ul>
+    <form method="post" action="/logout" class="d-flex align-items-center gap-2 m-0">
+      <span class="avatar" aria-hidden="true">{{ (user.name or user.username)[:1]|upper }}</span>
+      <span class="fw-medium d-none d-sm-inline">{{ user.name }}</span>
+      {% if user.is_admin %}<span class="badge text-bg-primary d-none d-sm-inline">{{ t('admin_badge') }}</span>{% endif %}
+      <input type="hidden" name="csrf" value="{{ csrf }}">
+      <button class="btn btn-sm btn-outline-secondary" type="submit">{{ t('sign_out') }}</button>
+    </form>
+    {% endif %}
+  </div>
+</nav>
+<main class="container py-4">
+{% if flash %}<div class="alert alert-info" role="status">{{ flash }}</div>{% endif %}
+{% block body %}{% endblock %}
+</main>
+</body>
+</html>
