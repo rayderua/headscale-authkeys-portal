@@ -35,15 +35,18 @@ config:
     maxAgeHours: 8
     cookieSecure: true
 
-# Secret created by you (no auto-generation). Required keys:
-#   apiKey            - headscale API key
-#   oidcClientSecret  - OIDC client secret
-#   sessionSecret     - random string, >= 32 chars
+# Secret environment variables. The chart creates a Secret from this map and
+# passes it to the container with envFrom. The three PORTAL_* keys are required
+# (headscale API key, OIDC client secret, session secret of 32+ characters);
+# any other key is added to the environment as well.
+secretsEnv:
+  PORTAL_HEADSCALE_API_KEY: ""
+  PORTAL_OIDC_CLIENT_SECRET: ""
+  PORTAL_SESSION_SECRET: ""
+
+# Use a Secret you manage yourself instead. When set, the chart creates no Secret
+# and secretsEnv is ignored; the Secret must contain the same three PORTAL_* keys.
 existingSecret: ""
-secretKeys:
-  apiKey: apiKey
-  oidcClientSecret: oidcClientSecret
-  sessionSecret: sessionSecret
 
 extraEnv: {}
 

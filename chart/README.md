@@ -11,7 +11,7 @@ behaviour (limits, admins, user matching).
 helm repo add headscale-authkeys-portal https://rayderua.github.io/headscale-authkeys-portal/
 helm repo update
 helm install portal headscale-authkeys-portal/headscale-authkeys-portal -f values.yaml
-# pre-release builds from the development branch:
+# pre-releases (tags like v1.2.3-rc.1):
 helm install portal headscale-authkeys-portal/headscale-authkeys-portal --devel -f values.yaml
 ```
 
@@ -19,16 +19,19 @@ helm install portal headscale-authkeys-portal/headscale-authkeys-portal --devel 
 
 1. **Headscale API key.** Create it by hand: `headscale apikeys create --expiration 90d`
    (it can be created only on the running leader). Rotate it before it expires.
-2. **Secret.** The chart never generates secrets. Create one with three keys:
+2. **Secrets.** The chart creates a Secret from `secretsEnv` and passes it to the
+   container as environment variables. Put the values into your encrypted values
+   file (helmfile/SOPS or similar), not into git in plain text:
 
-   ```bash
-   kubectl create secret generic portal-secrets \
-     --from-literal=apiKey='<headscale api key>' \
-     --from-literal=oidcClientSecret='<oidc client secret>' \
-     --from-literal=sessionSecret="$(openssl rand -hex 32)"
+   ```yaml
+   secretsEnv:
+     PORTAL_HEADSCALE_API_KEY: "<headscale api key>"
+     PORTAL_OIDC_CLIENT_SECRET: "<oidc client secret>"
+     PORTAL_SESSION_SECRET: "<random string, 32+ characters>"   # openssl rand -hex 32
    ```
 
-   Key names can be changed with `secretKeys.*`.
+   Prefer to manage the Secret yourself? Create it with the same three keys and
+   set `existingSecret: <name>`; the chart then creates no Secret.
 3. **authentik.** Use headscale's provider or create a new one. Add the redirect URI
    `<config.publicUrl>/auth/callback` (Strict). With `config.admin.group` the
    provider must also release the `groups` claim (scope mapping).
@@ -36,7 +39,10 @@ helm install portal headscale-authkeys-portal/headscale-authkeys-portal --devel 
 ## Minimal values
 
 ```yaml
-existingSecret: portal-secrets
+secretsEnv:
+  PORTAL_HEADSCALE_API_KEY: "..."
+  PORTAL_OIDC_CLIENT_SECRET: "..."
+  PORTAL_SESSION_SECRET: "..."
 
 config:
   publicUrl: https://keys.example.com
@@ -58,7 +64,7 @@ ingress:
       hosts: [keys.example.com]
 ```
 
-The chart fails to render when a required value is missing, when neither
+The chart fails to render when a required value or secret is missing, when neither
 `config.admin.group` nor `config.admin.users` is set, or when `replicas` is not 1
 (locks and rate limits live in process memory).
 
@@ -67,11 +73,11 @@ The chart fails to render when a required value is missing, when neither
 | Key | Default | Description |
 |---|---|---|
 | `image.repository` | `ghcr.io/rayderua/headscale-authkeys-portal` | Image repository |
-| `image.tag` | `""` | Defaults to `appVersion` (`development` for dev chart builds) |
+| `image.tag` | `""` | Defaults to `appVersion`, which equals the release tag without `v` |
 | `image.pullPolicy` | `IfNotPresent` | |
 | `replicas` | `1` | Must be 1 |
-| `existingSecret` | `""` | **Required.** Secret with `apiKey`, `oidcClientSecret`, `sessionSecret` |
-| `secretKeys.apiKey` / `oidcClientSecret` / `sessionSecret` | same names | Key names inside the Secret |
+| `secretsEnv` | three `PORTAL_*` keys, empty | **Required** unless `existingSecret` is set. Env var name → value; the chart creates a Secret from it and uses `envFrom`. Extra keys are allowed |
+| `existingSecret` | `""` | Use your own Secret (same `PORTAL_*` keys) instead of creating one |
 | `config.publicUrl` | `""` | **Required.** Public portal URL (OIDC redirect URI base) |
 | `config.headscalePublicUrl` | `""` | **Required.** Headscale URL shown to users and used in commands |
 | `config.headscaleApiUrl` | `""` | **Required.** Private headscale URL for API calls |
@@ -101,5 +107,6 @@ The chart fails to render when a required value is missing, when neither
 
 ## Upgrading
 
-The ConfigMap checksum is part of the pod template, so config changes restart
-the pod. Secret changes do not: restart the Deployment after rotating a secret.
+The ConfigMap and the chart-created Secret checksums are part of the pod
+template, so changes to `config` or `secretsEnv` restart the pod. With
+`existingSecret` the chart cannot see changes: restart the Deployment yourself.

@@ -13,6 +13,7 @@ spec:
     metadata:
       labels: {{- include "portal.selectorLabels" . | nindent 8 }}
       annotations:
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
         checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
     spec:
       securityContext:
@@ -25,16 +26,13 @@ spec:
           env:
             - name: PORTAL_CONFIG
               value: /etc/portal/config.yaml
-            - name: PORTAL_HEADSCALE_API_KEY
-              valueFrom: {secretKeyRef: {name: {{ .Values.existingSecret | quote }}, key: {{ .Values.secretKeys.apiKey | quote }}}}
-            - name: PORTAL_OIDC_CLIENT_SECRET
-              valueFrom: {secretKeyRef: {name: {{ .Values.existingSecret | quote }}, key: {{ .Values.secretKeys.oidcClientSecret | quote }}}}
-            - name: PORTAL_SESSION_SECRET
-              valueFrom: {secretKeyRef: {name: {{ .Values.existingSecret | quote }}, key: {{ .Values.secretKeys.sessionSecret | quote }}}}
             {{- range $k, $v := .Values.extraEnv }}
             - name: {{ $k }}
               value: {{ $v | quote }}
             {{- end }}
+          envFrom:
+            - secretRef:
+                name: {{ include "portal.secretName" . }}
           ports:
             - {name: http, containerPort: 8080}
           readinessProbe:
