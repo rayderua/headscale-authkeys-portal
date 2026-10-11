@@ -32,22 +32,27 @@ To use the same issuer as headscale, reuse headscale's provider or set
     pip install -r requirements-dev.txt && pytest
 
 ## CI/CD
-- `.github/workflows/image.yml`: tests, then multi-arch image to
-  `ghcr.io/<owner>/headscale-authkeys-portal` (`main` -> `latest`,
-  `development` -> `development`, tag `vX.Y.Z` -> `X.Y.Z`, plus `sha-<short>`).
-- `.github/workflows/helm-release.yml`: publishes the chart to a Helm repo on
-  GitHub Pages (`gh-pages` branch). `main` = stable (version from `Chart.yaml`),
-  `development` = pre-release `<version>-dev.<run>+<sha>` with appVersion
-  `development`.
+- `.github/workflows/ci.yml`: tests, chart lint and a test image build on every
+  push and pull request. Nothing is published.
+- `.github/workflows/release.yml`: runs **only on git tags** `vX.Y.Z[-suffix]`.
+  It runs the tests, pushes a multi-arch image to
+  `ghcr.io/<owner>/headscale-authkeys-portal`, publishes the chart to the Helm
+  repo on GitHub Pages (`gh-pages` branch) and creates a GitHub Release with the
+  chart package attached.
 
-Release flow: bump `version`/`appVersion` in `chart/headscale-authkeys-portal/Chart.yaml`,
-merge to `main`, then push the git tag `v<appVersion>` so the image tag the
-chart points to exists.
+| Tag | Image tags | Chart | GitHub Release |
+|---|---|---|---|
+| `v1.2.3` | `1.2.3`, `1.2`, `latest` | `1.2.3` | release |
+| `v1.2.3-rc.1` | `1.2.3-rc.1` | `1.2.3-rc.1` (needs `--devel`) | pre-release |
 
-One-time setup (same as for the headscale chart): create an orphan `gh-pages`
-branch containing an empty `index.yaml`, enable Pages from that branch, give
-workflows read/write permission, and make the GHCR package public (or add an
-imagePullSecret).
+Chart `version` and `appVersion` are taken from the tag, so `Chart.yaml` needs no
+edit for a release:
+
+    git tag v0.1.0 && git push origin v0.1.0
+
+One-time setup: create an orphan `gh-pages` branch containing an empty
+`index.yaml`, enable Pages from that branch, give workflows read/write
+permission, and make the GHCR package public (or add an imagePullSecret).
 
     helm repo add headscale-authkeys-portal https://rayderua.github.io/headscale-authkeys-portal/
     helm install portal headscale-authkeys-portal/headscale-authkeys-portal -f values.yaml

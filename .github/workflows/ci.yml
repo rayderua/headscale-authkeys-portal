@@ -1,0 +1,55 @@
+name: CI
+
+# Tests, chart lint and a test image build (never pushed). Releases are
+# created only from tags, see release.yml.
+on:
+  push:
+    branches: [main, development]
+  pull_request: {}
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+      - run: pip install -r requirements-dev.txt
+      - run: pytest -q
+
+  chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+      - name: Lint chart
+        run: |
+          helm lint chart/headscale-authkeys-portal \
+            --set config.publicUrl=https://portal.example.com \
+            --set config.headscalePublicUrl=https://hs.example.com \
+            --set config.headscaleApiUrl=http://headscale:8080 \
+            --set config.oidc.issuer=https://auth.example.com/application/o/hs/ \
+            --set config.oidc.clientId=x \
+            --set config.admin.group=admins \
+            --set existingSecret=portal-secrets
+
+  image:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          cache-from: type=gha

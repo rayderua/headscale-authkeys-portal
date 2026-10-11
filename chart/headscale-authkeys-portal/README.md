@@ -11,7 +11,7 @@ behaviour (limits, admins, user matching).
 helm repo add headscale-authkeys-portal https://rayderua.github.io/headscale-authkeys-portal/
 helm repo update
 helm install portal headscale-authkeys-portal/headscale-authkeys-portal -f values.yaml
-# pre-release builds from the development branch:
+# pre-releases (tags like v1.2.3-rc.1):
 helm install portal headscale-authkeys-portal/headscale-authkeys-portal --devel -f values.yaml
 ```
 
@@ -67,7 +67,7 @@ The chart fails to render when a required value is missing, when neither
 | Key | Default | Description |
 |---|---|---|
 | `image.repository` | `ghcr.io/rayderua/headscale-authkeys-portal` | Image repository |
-| `image.tag` | `""` | Defaults to `appVersion` (`development` for dev chart builds) |
+| `image.tag` | `""` | Defaults to `appVersion`, which equals the release tag without `v` |
 | `image.pullPolicy` | `IfNotPresent` | |
 | `replicas` | `1` | Must be 1 |
 | `existingSecret` | `""` | **Required.** Secret with `apiKey`, `oidcClientSecret`, `sessionSecret` |
