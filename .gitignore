@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+
+# Local configuration and secrets (config_example.yaml is the tracked template)
+config.local.yaml
+config.yaml
+.env
+.env.*
+*.pem
+*.key
+
+# Helm
+chart/**/charts/
+*.tgz
+.packaged/
+
+# Editors / OS
+.tmp/
+.idea/
+.vscode/
+*.swp
+.DS_Store

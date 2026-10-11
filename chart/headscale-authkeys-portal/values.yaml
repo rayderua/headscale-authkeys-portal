@@ -1,0 +1,78 @@
+image:
+  repository: ghcr.io/rayderua/headscale-authkeys-portal
+  tag: ""            # defaults to .Chart.appVersion
+  pullPolicy: IfNotPresent
+
+# The portal keeps per-owner locks and rate limits in memory,
+# so it must run as a single replica.
+replicas: 1
+
+config:
+  # Public URL of this portal (OIDC redirect URI = <publicUrl>/auth/callback).
+  publicUrl: ""
+  # Public URL of headscale, shown to users and put into the commands.
+  headscalePublicUrl: ""
+  # Private URL of headscale used for API calls only (e.g. the Service address).
+  headscaleApiUrl: ""
+  oidc:
+    issuer: ""
+    clientId: ""
+    scopes: [openid, profile, email, groups]
+    groupsClaim: groups
+    usernameClaim: preferred_username
+    # Issuer used by headscale for its OIDC users. Empty = same as issuer.
+    headscaleIssuer: ""
+  admin:
+    group: ""        # members of this group are admins
+    users: []        # usernames (preferred_username) that are admins
+  limits:
+    maxSets: 3
+    maxDevices: 5
+    defaultDevices: 1
+    ttlMinutes: 15
+    createsPerMinute: 10
+  session:
+    maxAgeHours: 8
+    cookieSecure: true
+
+# Secret created by you (no auto-generation). Required keys:
+#   apiKey            - headscale API key
+#   oidcClientSecret  - OIDC client secret
+#   sessionSecret     - random string, >= 32 chars
+existingSecret: ""
+secretKeys:
+  apiKey: apiKey
+  oidcClientSecret: oidcClientSecret
+  sessionSecret: sessionSecret
+
+extraEnv: {}
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  host: ""
+  tls: []            # [{secretName: x, hosts: [..]}]
+
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  runAsGroup: 1000
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities: {drop: [ALL]}
+  seccompProfile: {type: RuntimeDefault}
+
+resources:
+  requests: {cpu: 50m, memory: 96Mi}
+  limits: {memory: 256Mi}
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+extraManifests: []

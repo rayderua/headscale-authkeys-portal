@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block body %}
+<section class="card">
+  <h1>{{ t('created_keys') }}{% if for_other %}: {{ owner_user.name }}{% endif %}</h1>
+  <p class="warn">{{ t('show_once') }} <span class="countdown" data-expires="{{ expires.isoformat() }}"></span></p>
+
+  <div class="field">
+    <div class="label">{{ t('headscale_url') }}</div>
+    <div class="copyrow"><code>{{ settings.headscale_public_url }}</code>
+      <button class="btn" type="button" data-copy="{{ settings.headscale_public_url }}">{{ t('copy') }}</button></div>
+  </div>
+
+  {% for k in keys %}
+  <div class="keyblock">
+    {% if keys|length > 1 %}<h2>#{{ loop.index }}</h2>{% endif %}
+    <div class="field">
+      <div class="label">{{ t('key') }}</div>
+      <div class="copyrow"><code>{{ k }}</code>
+        <button class="btn" type="button" data-copy="{{ k }}">{{ t('copy') }}</button></div>
+    </div>
+    {% set cmd = 'tailscale up --login-server ' ~ settings.headscale_public_url ~ ' --authkey ' ~ k %}
+    <div class="field">
+      <div class="label">{{ t('command') }}</div>
+      <div class="copyrow"><code>{{ cmd }}</code>
+        <button class="btn" type="button" data-copy="{{ cmd }}">{{ t('copy') }}</button></div>
+    </div>
+  </div>
+  {% endfor %}
+  <p><a class="btn" href="/keys">{{ t('back') }}</a></p>
+</section>
+{% endblock %}

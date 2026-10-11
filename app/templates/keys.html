@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block body %}
+{% if me_problem %}
+<section class="card"><p class="error">{{ t('err_' ~ me_problem) }}</p></section>
+{% endif %}
+
+<section class="card">
+  <div class="row between">
+    <h1>{{ t('my_keys') if not user.is_admin else t('all_keys') }}</h1>
+    {% if me %}<span class="muted">{{ t('quota', used=used, max=limits.max_sets) }}</span>{% endif %}
+  </div>
+
+  {% if me or user.is_admin %}
+  {% if full and not user.is_admin %}<p class="muted">{{ t('limit_note') }}</p>{% endif %}
+  <form method="post" action="/keys" class="create">
+    <input type="hidden" name="csrf" value="{{ csrf }}">
+    {% if user.is_admin %}
+    <label>{{ t('for_whom') }}
+      <select name="owner">
+        {% for o in owners %}
+        <option value="{{ o.id }}" {% if me and o.id|int == me.id|int %}selected{% endif %}>{{ o.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    {% endif %}
+    <label>{{ t('devices') }}
+      <select name="devices">
+        {% for n in range(1, limits.max_devices + 1) %}
+        <option value="{{ n }}" {% if n == limits.default_devices %}selected{% endif %}>{{ n }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="btn primary" type="submit" {% if full and not user.is_admin %}disabled{% endif %}>{{ t('create') }}</button>
+  </form>
+  <p class="muted small">{{ t('devices_hint') }}</p>
+  {% endif %}
+</section>
+
+<section class="card">
+  {% if not sets %}
+  <p class="muted">{{ t('no_sets') }}</p>
+  {% else %}
+  <table>
+    <thead><tr>
+      {% if user.is_admin %}<th>{{ t('owner') }}</th>{% endif %}
+      <th>{{ t('key') }}</th><th>{{ t('expires_in') }}</th><th></th>
+    </tr></thead>
+    <tbody>
+    {% for x in sets %}
+    <tr>
+      {% if user.is_admin %}<td>{{ x.owner_name }}</td>{% endif %}
+      <td>{{ t('unused', n=x.unused, total=x.total) }}</td>
+      <td><span class="countdown" data-expires="{{ x.expires_at.isoformat() }}"></span></td>
+      <td class="right">
+        <form method="post" action="/keys/revoke">
+          <input type="hidden" name="csrf" value="{{ csrf }}">
+          <input type="hidden" name="set_id" value="{{ x.id }}">
+          <button class="btn danger" type="submit">{{ t('revoke') }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+</section>
+{% endblock %}

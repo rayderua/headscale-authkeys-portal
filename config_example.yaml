@@ -1,0 +1,48 @@
+# Example configuration for headscale-authkeys-portal.
+# Point PORTAL_CONFIG at this file (default: /etc/portal/config.yaml).
+#
+# Secrets are NOT read from this file. Set them via environment variables:
+#   PORTAL_HEADSCALE_API_KEY   headscale API key (headscale apikeys create)
+#   PORTAL_OIDC_CLIENT_SECRET  OIDC client secret
+#   PORTAL_SESSION_SECRET      random string, 32+ characters
+
+# Public URL of this portal. The OIDC redirect URI is <public_url>/auth/callback.
+public_url: https://keys.example.com
+
+# Public URL of headscale. Shown to users and used in the tailscale commands.
+headscale_public_url: https://hs.example.com
+
+# Private URL of headscale, used for API calls only (e.g. the Service address).
+headscale_api_url: http://headscale.headscale.svc:8080
+
+oidc:
+  # Issuer of the OIDC provider (authentik: the application's issuer URL).
+  issuer: https://auth.example.com/application/o/headscale/
+  client_id: headscale-authkeys-portal
+  scopes: [openid, profile, email, groups]
+  # Claim holding the user's groups (used for admin.group).
+  groups_claim: groups
+  # Claim holding the username; must match the headscale user name.
+  username_claim: preferred_username
+  # Issuer headscale used when it created its OIDC users.
+  # Empty = same as "issuer". The "sub" part of provider_id is never compared.
+  headscale_issuer: ""
+
+admin:
+  # Members of this group are admins. Empty disables the group check.
+  group: admins
+  # Usernames (exact match on username_claim) that are admins.
+  users:
+    - root
+
+limits:
+  max_sets: 3             # active key sets per owner
+  max_devices: 5          # keys per set (selectable 1..max_devices)
+  default_devices: 1
+  ttl_minutes: 15         # key lifetime
+  creates_per_minute: 10  # per acting user
+
+session:
+  max_age_hours: 8
+  # Set to false only for local testing over plain HTTP.
+  cookie_secure: true

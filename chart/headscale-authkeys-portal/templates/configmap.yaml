@@ -1,0 +1,31 @@
+{{- include "portal.validate" . -}}
+{{- $c := .Values.config -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "portal.fullname" . }}
+  labels: {{- include "portal.labels" . | nindent 4 }}
+data:
+  config.yaml: |
+    public_url: {{ $c.publicUrl | quote }}
+    headscale_public_url: {{ $c.headscalePublicUrl | quote }}
+    headscale_api_url: {{ $c.headscaleApiUrl | quote }}
+    oidc:
+      issuer: {{ $c.oidc.issuer | quote }}
+      client_id: {{ $c.oidc.clientId | quote }}
+      scopes: {{ $c.oidc.scopes | toJson }}
+      groups_claim: {{ $c.oidc.groupsClaim | quote }}
+      username_claim: {{ $c.oidc.usernameClaim | quote }}
+      headscale_issuer: {{ $c.oidc.headscaleIssuer | quote }}
+    admin:
+      group: {{ $c.admin.group | quote }}
+      users: {{ $c.admin.users | toJson }}
+    limits:
+      max_sets: {{ $c.limits.maxSets }}
+      max_devices: {{ $c.limits.maxDevices }}
+      default_devices: {{ $c.limits.defaultDevices }}
+      ttl_minutes: {{ $c.limits.ttlMinutes }}
+      creates_per_minute: {{ $c.limits.createsPerMinute }}
+    session:
+      max_age_hours: {{ $c.session.maxAgeHours }}
+      cookie_secure: {{ $c.session.cookieSecure }}
