@@ -12,7 +12,7 @@ from __future__ import annotations
 import re
 from datetime import datetime, timezone
 
-import httpx
+import httpx2 as httpx
 
 
 class HeadscaleError(Exception):
