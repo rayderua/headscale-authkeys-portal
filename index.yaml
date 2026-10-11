@@ -1,3 +1,15 @@
 apiVersion: v1
-entries: {}
-generated: "1970-01-01T00:00:00Z"
+entries:
+  headscale-portal:
+  - apiVersion: v2
+    appVersion: 0.1.0
+    created: "2026-10-11T19:09:48.531608747Z"
+    description: Web portal for headscale (self-service pre-auth keys, account creation,
+      nodes) with authentik OIDC
+    digest: 19506d5a17c63ab73b4920cd4e2d17b13d3d6cf74e9de5e161a83a8392e82644
+    name: headscale-portal
+    type: application
+    urls:
+    - https://rayderua.github.io/headscale-portal/headscale-portal-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-10-11T19:09:48.531135958Z"
